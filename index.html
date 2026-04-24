@@ -228,6 +228,22 @@ async function compartilhar() {
     }
   });
 }
+
+  // Atualiza automaticamente o ticket ao carregar a página e ao alterar campos
+  document.addEventListener('DOMContentLoaded', () => {
+    const ids = ['valor', 'tipo', 'numero', 'modalidade'];
+
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', gerar);
+      el.addEventListener('change', gerar);
+      el.addEventListener('keyup', gerar);
+      el.addEventListener('blur', gerar);
+    });
+
+    gerar();
+  });
 </script>
 
 </body>
