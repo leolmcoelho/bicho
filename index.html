@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Aposta</title>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #111827;
+  --accent: #22c55e;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 16px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+h1 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: none;
+  background: #1f2937;
+  color: white;
+  font-size: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: black;
+}
+
+.btn-secondary {
+  background: #374151;
+  color: white;
+}
+
+/* Ticket */
+#ticket {
+  background: white;
+  color: black;
+  border-radius: 16px;
+  padding: 16px;
+  font-family: monospace;
+}
+
+.ticket-header {
+  text-align: center;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.ticket-line {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+}
+
+.codigo {
+  text-align: center;
+  font-size: 20px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: gray;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="card">
+    <h1>Nova Aposta</h1>
+
+    <input type="number" id="valor" placeholder="Valor (ex: 10)">
+    
+    <select id="tipo">
+      <option value="G">Grupo</option>
+      <option value="D">Dezena</option>
+      <option value="C">Centena</option>
+      <option value="M">Milhar</option>
+    </select>
+
+    <input type="text" id="numero" placeholder="Número (ex: 47)">
+
+    <select id="modalidade">
+      <option value="">Normal</option>
+      <option value="C">Cabeça</option>
+      <option value="PT">Todos</option>
+    </select>
+
+    <button class="btn-primary" onclick="gerar()">Gerar Ticket</button>
+  </div>
+
+  <div class="card">
+    <div id="ticket">
+      <div class="ticket-header">COMPROVANTE</div>
+      <hr>
+
+      <div class="ticket-line">
+        <span>Valor</span>
+        <span id="t_valor">-</span>
+      </div>
+
+      <div class="ticket-line">
+        <span>Tipo</span>
+        <span id="t_tipo">-</span>
+      </div>
+
+      <div class="ticket-line">
+        <span>Número</span>
+        <span id="t_numero">-</span>
+      </div>
+
+      <div class="ticket-line">
+        <span>Modalidade</span>
+        <span id="t_modalidade">-</span>
+      </div>
+
+      <hr>
+
+      <div class="codigo" id="codigo">---</div>
+
+      <div class="footer">
+        Gerado em <span id="data"></span>
+      </div>
+    </div>
+
+    <button class="btn-secondary" onclick="baixar()">Baixar Imagem</button>
+    <button class="btn-primary" onclick="compartilhar()">Compartilhar</button>
+  </div>
+
+</div>
+
+<script>
+function gerar() {
+  const valor = document.getElementById('valor').value;
+  const tipo = document.getElementById('tipo').value;
+  const numero = document.getElementById('numero').value;
+  const modalidade = document.getElementById('modalidade').value;
+
+  document.getElementById('t_valor').innerText = "R$ " + valor;
+  document.getElementById('t_tipo').innerText = tipo;
+  document.getElementById('t_numero').innerText = numero;
+  document.getElementById('t_modalidade').innerText = modalidade || 'NORMAL';
+
+  let codigo = `${valor} ${tipo} ${numero}`;
+  if (modalidade) codigo += ` ${modalidade}`;
+
+  document.getElementById('codigo').innerText = codigo;
+
+  document.getElementById('data').innerText = new Date().toLocaleString();
+}
+
+async function gerarCanvas() {
+  return await html2canvas(document.getElementById('ticket'));
+}
+
+async function baixar() {
+  const canvas = await gerarCanvas();
+  const link = document.createElement('a');
+  link.download = 'ticket.png';
+  link.href = canvas.toDataURL();
+  link.click();
+}
+
+async function compartilhar() {
+  const canvas = await gerarCanvas();
+
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], "ticket.png", { type: "image/png" });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: "Aposta",
+        text: "Meu comprovante"
+      });
+    } else {
+      const texto = document.getElementById('codigo').innerText;
+      window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+    }
+  });
+}
+</script>
+
+</body>
+</html>
